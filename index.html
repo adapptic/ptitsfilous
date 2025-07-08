@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Réservation - Calcul</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 15px;
+      background: #f8f8f8;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .success {
+      margin-top: 15px;
+      text-align: center;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Formulaire de Réservation</h2>
+    <form id="form">
+      <label>Nom</label>
+      <input type="text" name="nom" required>
+
+      <label>Email</label>
+      <input type="email" name="email" required>
+
+      <label>Adultes (18€)</label>
+      <input type="number" name="adultes" value="0" min="0">
+
+      <label>Enfants (12€)</label>
+      <input type="number" name="enfants" value="0" min="0">
+
+      <label>Cartes 5€</label>
+      <input type="number" name="cartes5" value="0" min="0">
+
+      <label>Cartes 10€</label>
+      <input type="number" name="cartes10" value="0" min="0">
+
+      <label>Cartes 20€</label>
+      <input type="number" name="cartes20" value="0" min="0">
+
+      <div class="total">Total : <span id="total">0</span> €</div>
+
+      <button type="submit">Envoyer</button>
+      <div class="success" id="successMsg"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const totalSpan = document.getElementById('total');
+    const successMsg = document.getElementById('successMsg');
+
+    function calcTotal() {
+      const adultes = parseInt(form.adultes.value || 0);
+      const enfants = parseInt(form.enfants.value || 0);
+      const cartes5 = parseInt(form.cartes5.value || 0);
+      const cartes10 = parseInt(form.cartes10.value || 0);
+      const cartes20 = parseInt(form.cartes20.value || 0);
+
+      const total = adultes * 18 + enfants * 12 + cartes5 * 5 + cartes10 * 10 + cartes20 * 20;
+      totalSpan.textContent = total;
+      return total;
+    }
+
+    form.addEventListener('input', calcTotal);
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const total = calcTotal();
+
+      const data = {
+        nom: form.nom.value,
+        email: form.email.value,
+        adultes: form.adultes.value,
+        enfants: form.enfants.value,
+        cartes5: form.cartes5.value,
+        cartes10: form.cartes10.value,
+        cartes20: form.cartes20.value
+      };
+
+      fetch("TON_URL_APPS_SCRIPT_ICI", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(response => {
+          successMsg.textContent = "✅ Réservation enregistrée ! Un e-mail vous a été envoyé.";
+          form.reset();
+          calcTotal();
+        })
+        .catch(error => {
+          console.error(error);
+          successMsg.textContent = "❌ Une erreur s'est produite.";
+        });
+    });
+  </script>
+</body>
+</html>
