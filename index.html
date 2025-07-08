@@ -66,6 +66,10 @@
       text-align: center;
       color: green;
     }
+
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -126,11 +130,11 @@
       const data = {
         nom: form.nom.value,
         email: form.email.value,
-        adultes: form.adultes.value,
-        enfants: form.enfants.value,
-        cartes5: form.cartes5.value,
-        cartes10: form.cartes10.value,
-        cartes20: form.cartes20.value
+        adultes: parseInt(form.adultes.value || 0),
+        enfants: parseInt(form.enfants.value || 0),
+        cartes5: parseInt(form.cartes5.value || 0),
+        cartes10: parseInt(form.cartes10.value || 0),
+        cartes20: parseInt(form.cartes20.value || 0)
       };
 
       fetch("https://script.google.com/macros/s/AKfycbx5WNupL8xha1OIrddh1Q-MTfkoWoebeHH9MfWZX1Dugk9jBOn5IBWKP7PPqzxWdMS9sA/exec", {
@@ -140,17 +144,30 @@
         },
         body: JSON.stringify(data)
       })
-        .then(res => res.json())
+        .then(async res => {
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Erreur serveur : ${res.status} – ${text}`);
+          }
+          return res.json();
+        })
         .then(response => {
-          successMsg.textContent = "✅ Réservation enregistrée ! Un e-mail vous a été envoyé.";
-          form.reset();
-          calcTotal();
+          if (response.result === "success") {
+            successMsg.textContent = "✅ Réservation enregistrée ! Un e-mail vous a été envoyé.";
+            form.reset();
+            calcTotal();
+          } else {
+            throw new Error("Réponse inattendue : " + JSON.stringify(response));
+          }
         })
         .catch(error => {
-          console.error(error);
-          successMsg.textContent = "❌ Une erreur s'est produite.";
+          console.error("Erreur détectée :", error);
+          successMsg.innerHTML = `<span class="error">❌ ${error.message}</span>`;
         });
     });
+
+    // Initialiser le total au chargement
+    calcTotal();
   </script>
 </body>
 </html>
